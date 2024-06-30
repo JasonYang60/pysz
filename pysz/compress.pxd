@@ -1,5 +1,10 @@
+cdef extern from "SZ3/utils/Config.hpp" namespace "SZ3":
+    cdef cppclass Config:
+        pass
+
 cdef extern from "SZ3/api/sz.hpp":
-    pass
+    char *SZ_compress[T](const Config &conf, 
+                const T *data, size_t &cmpSize)
 
 # Define the macros as constants in Cython
 cdef int SZ_FLOAT   = 0
