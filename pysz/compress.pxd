@@ -5,6 +5,23 @@ from libcpp.vector cimport vector
 from libcpp.memory cimport unique_ptr
 
 cdef extern from "SZ3/utils/Config.hpp" namespace "SZ3":
+    cdef enum EB:
+        EB_ABS
+        EB_REL
+        EB_PSNR
+        EB_L2NORM
+        EB_ABS_AND_REL
+        EB_ABS_OR_REL
+    
+    cdef enum ALGO:
+        ALGO_LORENZO_REG
+        ALGO_INTERP_LORENZO
+        ALGO_INTERP
+
+    cdef enum INTERP_ALGO:
+        INTERP_ALGO_LINEAR 
+        INTERP_ALGO_CUBIC
+
     cdef cppclass Config:
         size_t setDims[Iter](Iter begin, Iter end)
         void loadcfg(const string &cfgpath) 
