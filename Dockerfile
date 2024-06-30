@@ -1,4 +1,4 @@
-FROM python:3.10-buster
+FROM python:latest
 
 # set up C/CXX compilation env
 RUN apt-get update 
@@ -7,25 +7,22 @@ RUN apt-get install -y \
     gcc \
     cmake \
     libcunit1-dev \
+    zstd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+# zstd is requied before building up
 
 COPY . /home/pysz
 
 # install required python package
 RUN pip install numpy pytest cython
 
-# set up SZ
 RUN cd /home \
-    && git clone https://github.com/NeptuneYang/SZ.git
-WORKDIR /home/SZ
-    # enable example & test in CMakeLists.txt
-RUN sed -i 's/BUILD_SZ_EXAMPLES "build sz example" OFF/BUILD_SZ_EXAMPLES "build sz example" ON/' CMakeLists.txt \
-    && sed -i.bak 's/BUILD_TESTS "build test cases" OFF/BUILD_TESTS "build test cases" ON/' CMakeLists.txt 
-RUN mkdir build \
-    && cd build \
-    && cmake .. \
-    && make \
-    && ctest
+    && git clone https://github.com/NeptuneYang/SZ3.git
+WORKDIR /home/SZ3
+# RUN mkdir build \
+#     && cd build \
+#     && cmake .. \
+#     && make \
 
 WORKDIR /home/pysz
