@@ -13,7 +13,7 @@ RUN apt-get install -y \
 COPY . /home/pysz
 
 # install required python package
-RUN pip install numpy pytest
+RUN pip install numpy pytest cython
 
 # set up SZ
 RUN cd /home \
