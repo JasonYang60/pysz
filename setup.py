@@ -36,14 +36,9 @@ def extensions():
     import numpy
     from Cython.Build import cythonize
     exts = []
-    ext = Extension("pysz.compress",
+    exts.append(Extension("pysz.compress",
                     sources=["pysz/compress.pyx"],
                     include_dirs=['SZ3/include',
-                                # "/usr/include",
-                                # '/usr/include/c++/12',
-                                # '/usr/include/x86_64-linux-gnu',
-                                # '/usr/local/include',
-                                # '/usr/lib/gcc/x86_64-linux-gnu/12/include',
                                 'SZ3/build/include',
                                 numpy.get_include()],
                     libraries=["SZ3c","zstd"],  # Unix-like specific,
@@ -52,8 +47,20 @@ def extensions():
                     language='c++',
                     extra_compile_args=['-std=c++17'],
                     # extra_link_args=['-Wl,-rpath,/usr/local/lib']
-                    )
-    exts.append(ext)
+                    ))
+    
+    exts.append(Extension("pysz.pyConfig",
+                    sources=["pysz/pyConfig.pyx"],
+                    include_dirs=['SZ3/include',
+                                'SZ3/build/include',
+                                numpy.get_include()],
+                    libraries=["SZ3c","zstd"],  # Unix-like specific,
+                    library_dirs=["SZ3/build/tools/sz3c", 
+                                "SZ3/build/tools/zstd"],
+                    language='c++',
+                    extra_compile_args=['-std=c++17'],
+                    # extra_link_args=['-Wl,-rpath,/usr/local/lib']
+                    ))
     return cythonize(exts)
 
 
