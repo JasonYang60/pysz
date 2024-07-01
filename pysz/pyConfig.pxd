@@ -25,6 +25,7 @@ cdef extern from "SZ3/utils/Config.hpp" namespace "SZ3":
         Config() except + # raise a warning when Config() is missing
         size_t setDims[Iter](Iter begin, Iter end)
         void loadcfg(const string &cfgpath) 
+
         char N
         vector[size_t] dims
         size_t num 
@@ -48,3 +49,6 @@ cdef extern from "SZ3/utils/Config.hpp" namespace "SZ3":
         int blockSize
         int stride #not used now
         int pred_dim # not used now
+
+cdef class pyConfig:
+    cdef Config conf

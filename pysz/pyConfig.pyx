@@ -3,8 +3,7 @@ from pysz cimport pyConfig
 cimport cython
 
 cdef class pyConfig:
-    # Hold a C++ instance which we're wrapping
-    cdef Config conf 
+    # Hold a C++ instance which we're wrapping 
 
     def __init__(self, *args):
         self.conf = Config()
