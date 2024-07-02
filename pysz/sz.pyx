@@ -50,14 +50,12 @@ cdef class sz:
     def print_errorBoundMode(this):
         print("errorBoundMode = ", this.conf.conf.errorBoundMode)
 
-    
-    
-    
-    
-    
-    
-    
-    
+    def set_absErrorBound(this, abs):
+        if not isinstance(abs, float):
+            raise TypeError("Wrong params type")
+        this.conf.conf.absErrorBound = abs
+    def get_absErrorBound(this):
+        return this.conf.conf.absErrorBound
     
     
     # pyConfig func
@@ -105,8 +103,6 @@ cdef class sz:
 
     # compress func
     def compress(this):
-        # debug
-        this.conf.conf.absErrorBound = 1e-3
         if this.dataType == SZ_FLOAT:
             this.outBytesPtr = <void*> SZ_compress[float](this.conf.conf, <float*> this.inBytesPtr, this.outSize)
         elif this.dataType == SZ_DOUBLE:
