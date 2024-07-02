@@ -2,6 +2,19 @@ from libcpp.string cimport string
 from libc.stdlib cimport malloc, free
 from pysz cimport pyConfig
 
+cdef enum SZ_TYPE:
+    SZ_TYPE_EMPTY
+    SZ_FLOAT
+    SZ_DOUBLE
+    SZ_UINT8
+    SZ_INT8
+    SZ_UINT16
+    SZ_INT16
+    SZ_UINT32
+    SZ_INT32
+    SZ_UINT64
+    SZ_INT64
+
 cdef extern from "SZ3/utils/FileUtil.hpp" namespace "SZ3":
     void readfile[Type](const char *file, const size_t num, Type *data)
     void writefile[Type](const char *file, Type *data, size_t num_elements)

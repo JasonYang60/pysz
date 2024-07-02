@@ -4,23 +4,9 @@ from pysz cimport pyConfig
 cimport cython
 from cython.operator cimport dereference
 
-# Define the macros as constants in Cython
-cdef int SZ_FLOAT   = -1
-cdef int SZ_DOUBLE  = 1
-cdef int SZ_UINT8   = 2
-cdef int SZ_INT8    = 3
-cdef int SZ_UINT16  = 4
-cdef int SZ_INT16   = 5
-cdef int SZ_UINT32  = 6
-cdef int SZ_INT32   = 7
-cdef int SZ_UINT64  = 8
-cdef int SZ_INT64   = 9
-
-# To indicate that type is set incorrectly
-cdef int SZ_TYPE_EMPTY = 0
-
 cdef class sz:
     
+    # private c++ variables
     cdef void * inBytesPtr
     cdef void * outBytesPtr
     cdef size_t outSize
@@ -34,7 +20,6 @@ cdef class sz:
         this.outBytesPtr = NULL
         outSize = 0
 
-
     def setType(this, typeStr):
         types = {
             'float'     : SZ_FLOAT,
@@ -42,10 +27,39 @@ cdef class sz:
             'int32_t'   : SZ_INT32,
             'int64_t'   : SZ_INT64,
         }
-        this.dataType = types.get(typeStr)
-        if not this.dataType:
+        if not typeStr in types:
             raise TypeError("Error: failed to set data type. Data type not supported") 
+        this.dataType = types.get(typeStr)
 
+    # set & print config
+    def set_errorBoundMode(this, EB):
+        EBs = {
+            'ABS'   : pyConfig.EB_ABS,
+            'REL'   : pyConfig.EB_REL,
+            'PSNR'  : pyConfig.EB_PSNR,
+            'L2NORM': pyConfig.EB_L2NORM,
+            'ABS_AND_REL'   : pyConfig.EB_ABS_AND_REL,
+            'ABS_OR_REL'    : pyConfig.EB_ABS_OR_REL,
+        }
+        this.conf.conf.errorBoundMode = EBs.get(EB)
+        if not EB in EBs:
+            raise TypeError("Input Error: failed to set errorBoundMode.") 
+        else:
+            print("errorBoundMode set to " + EB)
+
+    def print_errorBoundMode(this):
+        print("errorBoundMode = ", this.conf.conf.errorBoundMode)
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     # pyConfig func
     def loadcfg(this, cfgPath):
         this.conf.loadcfg(cfgPath)
@@ -62,23 +76,25 @@ cdef class sz:
         # convert python string to char*
         cdef string inPathStr = <bytes> inPath.encode('utf-8')
         cdef char *inPathBytes = &inPathStr[0]
-        cdef cmpSize = 0;
         if len(args) == 1 and args[0] == '-d':
             print('decompression mode')
-            cmpSize = this.__getFileSize(inPath)
-            this.inBytesPtr = malloc(cmpSize)
-            readfile[char](inPathBytes, cmpSize, <char*> this.inBytesPtr)
-            return
-        if this.dataType == SZ_TYPE_EMPTY:
-            raise TypeError("Can not read file. Data type not set")
-        elif this.dataType == SZ_FLOAT:
-            this.inBytesPtr = malloc(this.conf.conf.num * sizeof(float))
-            readfile[float](inPathBytes, this.conf.conf.num, <float*> this.inBytesPtr)
-        elif this.dataType == SZ_DOUBLE:
-            this.inBytesPtr = malloc(this.conf.conf.num * sizeof(double))
-            readfile[double](inPathBytes, this.conf.conf.num, <double*> this.inBytesPtr)
+            this.outSize = this.__getFileSize(inPath)
+            print(this.outSize)
+            this.inBytesPtr = malloc(this.outSize)
+            readfile[char](inPathBytes, this.outSize, <char*> this.inBytesPtr)
+        elif len(args) > 0:
+            raise SyntaxError("Wrong input")
         else:
-            print("Error: data type not supported")
+            if this.dataType == SZ_TYPE_EMPTY:
+                raise TypeError("Can not read file. Data type not set")
+            elif this.dataType == SZ_FLOAT:
+                this.inBytesPtr = malloc(this.conf.conf.num * sizeof(float))
+                readfile[float](inPathBytes, this.conf.conf.num, <float*> this.inBytesPtr)
+            elif this.dataType == SZ_DOUBLE:
+                this.inBytesPtr = malloc(this.conf.conf.num * sizeof(double))
+                readfile[double](inPathBytes, this.conf.conf.num, <double*> this.inBytesPtr)
+            else:
+                print("Error: data type not supported")
 
     def writefile(this, outPath):
         # convert python string to char*
@@ -91,23 +107,50 @@ cdef class sz:
     def compress(this):
         # debug
         this.conf.conf.absErrorBound = 1e-3
-
-        cdef char *outBytes = SZ_compress[double](this.conf.conf, <double*> this.inBytesPtr, this.outSize)
-        this.outBytesPtr = <void*> outBytes
-        
+        if this.dataType == SZ_FLOAT:
+            this.outBytesPtr = <void*> SZ_compress[float](this.conf.conf, <float*> this.inBytesPtr, this.outSize)
+        elif this.dataType == SZ_DOUBLE:
+            this.outBytesPtr = <void*> SZ_compress[double](this.conf.conf, <double*> this.inBytesPtr, this.outSize)
+        else:
+            raise TypeError("data type not supported")
 
         # log info
-        compression_ratio = this.conf.conf.num * 1.0 * sizeof(double) / this.outSize
-        print(f"compression ratio = {compression_ratio:.2f}")
-        print(this.conf.conf.lossless)
+        #compression_ratio = this.conf.conf.num * 1.0 * sizeof(double) / this.outSize
+        #print(f"compression ratio = {compression_ratio:.2f}")
     
     # decompress func
-    def decompress(this, inPath):
-        cdef size_t cmpSize = this.__getFileSize(inPath) / sizeof(double)
-        print(cmpSize)
-        cdef double *decData = SZ_decompress[double](this.conf.conf, <char*> this.inBytesPtr, cmpSize)
-        this.outBytesPtr = <void*> decData
+    def decompress(this):
+        if this.dataType == SZ_FLOAT:
+            this.outBytesPtr = <void*> SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, <size_t>(this.outSize / sizeof(float)))
+        elif this.dataType == SZ_DOUBLE:
+            print(this.outSize)
+            this.outBytesPtr = <void*> SZ_decompress[double](this.conf.conf, <char*> this.inBytesPtr, <size_t>(this.outSize / sizeof(double)))
+        else:
+            raise TypeError("data type not supported")
         this.outSize = this.conf.conf.num
+    
+    # Utils
+    def __timing_decorator(func):
+        import time
+        def wrapper(*args, **kwargs):
+
+            
+
+            start_time = time.time()
+            result = func(*args, **kwargs)
+            end_time = time.time()
+            elapse_time = end_time - start_time
+            print(f"{func.__name__} execution time = {elapse_time:.4f} sec")
+            return result
+        return wrapper
+
+    @__timing_decorator
+    def compress_timing(this):
+        this.compress()
+
+    @__timing_decorator
+    def decompress_timing(this):
+        this.decompress()
 
     def verify(this):
         free(this.inBytesPtr)
