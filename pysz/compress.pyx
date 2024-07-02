@@ -5,8 +5,7 @@ cimport cython
 from libc.stdlib cimport malloc, free
 from libcpp.string cimport string
 
-def compress_double(pyConfig.Config &conf, const double *inBytes):
-    cdef size_t outSize
+cdef compress_double(pyConfig.Config &conf, const double *inBytes, size_t &outSize):
     cdef char *outBytesPtr = SZ_compress[double](conf, inBytes, outSize)
     return outBytesPtr
 
