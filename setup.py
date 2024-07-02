@@ -36,16 +36,44 @@ def extensions():
     import numpy
     from Cython.Build import cythonize
     exts = []
-    ext = Extension("pysz.compress",
-                    sources=["pysz/compress.pyx"],
-                    include_dirs=['SZ/sz/include',
-                                  numpy.get_include()],
-                    libraries=["SZ"],  # Unix-like specific,
-                    library_dirs=["SZ/build/sz"],
-                    language='c',
+    # exts.append(Extension("pysz.compress",
+    #                 sources=["pysz/compress.pyx"],
+    #                 include_dirs=['SZ3/include',
+    #                             'SZ3/build/include',
+    #                             numpy.get_include()],
+    #                 libraries=["SZ3c","zstd"],  # Unix-like specific,
+    #                 library_dirs=["SZ3/build/tools/sz3c", 
+    #                             "SZ3/build/tools/zstd"],
+    #                 language='c++',
+    #                 extra_compile_args=['-std=c++17'],
+    #                 # extra_link_args=['-Wl,-rpath,/usr/local/lib']
+    #                 ))
+    
+    exts.append(Extension("pysz.pyConfig",
+                    sources=["pysz/pyConfig.pyx"],
+                    include_dirs=['SZ3/include',
+                                'SZ3/build/include',
+                                numpy.get_include()],
+                    libraries=["SZ3c","zstd"],  # Unix-like specific,
+                    library_dirs=["SZ3/build/tools/sz3c", 
+                                "SZ3/build/tools/zstd"],
+                    language='c++',
+                    extra_compile_args=['-std=c++17'],
                     # extra_link_args=['-Wl,-rpath,/usr/local/lib']
-                    )
-    exts.append(ext)
+                    ))
+
+    exts.append(Extension("pysz.sz",
+                    sources=["pysz/sz.pyx"],
+                    include_dirs=['SZ3/include',
+                                'SZ3/build/include',
+                                numpy.get_include()],
+                    libraries=["SZ3c","zstd"],  # Unix-like specific,
+                    library_dirs=["SZ3/build/tools/sz3c", 
+                                "SZ3/build/tools/zstd"],
+                    language='c++',
+                    extra_compile_args=['-std=c++17'],
+                    # extra_link_args=['-Wl,-rpath,/usr/local/lib']
+                    ))
     return cythonize(exts)
 
 
@@ -135,15 +163,15 @@ configuration = {
     'packages': find_packages(),
     'setup_requires': ['cython>=0.17', 'requests', 'numpy'],
     'ext_modules': extensions(),
-    # # 'use_scm_version': True,
-    #  # 'cmdclass': {'build_ext': specialized_build_ext},
-    # 'description': "A python wrapper for the SZ compression libary",
-    # 'long_description': long_description,
-    # 'long_description_content_type': 'text/markdown',
-    # 'url': 'https://github.com/yourusername/my_package',
-    # 'author': "Jason Yang",
-    # 'author_email': '',
-    # 'license': 'MIT',
+    # 'use_scm_version': True,
+    # 'cmdclass': {'build_ext': specialized_build_ext},
+    'description': "A python wrapper for the SZ compression libary",
+    'long_description': long_description,
+    'long_description_content_type': 'text/markdown',
+    'url': 'https://github.com/yourusername/my_package',
+    'author': "Jason Yang",
+    'author_email': '',
+    'license': 'MIT',
 }
 
 

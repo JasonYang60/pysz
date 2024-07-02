@@ -1,45 +1,43 @@
+# distutils: language = c++
+# Import the interface definitions
+from pysz cimport compress
+cimport cython
+from libc.stdlib cimport malloc, free
+from libcpp.string cimport string
 
-cdef extern from "sz.h":
-    ctypedef struct sz_params:
-        int dataType
-        unsigned int max_quant_intervals
-        unsigned int quantization_intervals
-        unsigned int maxRangeRadius
-        int sol_ID
-        int losslessCompressor
-        int sampleDistance
-        float predThreshold
-        int szMode
-        int gzipMode
-        int errorBoundMode
-        double absErrBound
-        double relBoundRatio
-        double psnr
-        double normErr
-        double pw_relBoundRatio
-        int segment_size
-        int pwr_type
-        int protectValueRange
-        float fmin, fmax
-        double dmin, dmax
-        int snapshotCmprStep
-        int predictionMode
-        int accelerate_pw_rel_compression
-        int plus_bits
-        int randomAccess
-        int withRegression
+cdef compress_double(pyConfig.Config &conf, const double *inBytes, size_t &outSize):
+    cdef char *outBytesPtr = SZ_compress[double](conf, inBytes, outSize)
+    return outBytesPtr
 
-    cdef int SZ_Init(const char *);
-    cdef void SZ_Finalize();
+def compress(dataType, inPath, cmpPath, cfgPath):
+    # set up configuration
+    cdef pyConfig.pyConfig pyCfg = pyConfig.pyConfig()
+    pyCfg.setDims(8,8,128)
+    pyCfg.loadcfg(cfgPath)
+    print("conf.num = ", pyCfg.conf.num)
 
-cdef extern from "unistd.h":
-    cdef int access(const char *pathname, int mode);
+    # read raw data from inPath
+    cdef string inPathStr = <bytes> inPath.encode('utf-8')
+    cdef char *inPathBytes = &inPathStr[0]
+    cdef double *inBytes = <double *> malloc(pyCfg.conf.num * sizeof(double))
+    print(inPathBytes)
+    readfile[double](inPathBytes, pyCfg.conf.num, inBytes)
 
-def f1():
-    cdef const char * cfgFilePath = "/home/pysz/SZ/example/sz.config"
-    SZ_Init(cfgFilePath)
-    print("initiation succeeded")
-    SZ_Finalize()
-    cdef sz_params sp;
-    print(sp.dataType)
-    return 0
+    # compression. remember to free inBytes, outBytesPtr
+    cdef size_t outSize = 0
+    cdef pyConfig.Config conf = pyCfg.conf
+    cdef char *outBytes = SZ_compress[double](pyCfg.conf, inBytes, outSize)
+
+    # write
+    cdef double *outBytes_double = <double*> outBytes
+    cdef string cmpPathStr = <bytes> cmpPath.encode('utf-8')
+    cdef char* outPathBytes = &cmpPathStr[0]
+    writefile[double](outPathBytes, outBytes_double, outSize)
+
+    # print
+    compression_ratio = pyCfg.conf.num * 1.0 * sizeof(double) / outSize
+    print(f"compression ratio = {compression_ratio:.2f}")
+
+    # free
+    free(inBytes)
+    free(outBytes)
