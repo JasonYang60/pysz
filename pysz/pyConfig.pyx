@@ -13,7 +13,7 @@ cdef class pyConfig:
             for arg in args:
                 if not isinstance(arg, int):
                     raise TypeError("The argument must be an integer.")
-                dims.insert(dims.begin(), arg)
+                dims.push_back(arg)
             self.conf.setDims(dims.begin(), dims.end())
             self.conf.blockSize = 128 if self.conf.N == 1 else (16 if self.conf.N == 2 else 6)
        

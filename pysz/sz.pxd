@@ -7,5 +7,16 @@ cdef extern from "SZ3/utils/FileUtil.hpp" namespace "SZ3":
     void writefile[Type](const char *file, Type *data, size_t num_elements)
 
 cdef extern from "SZ3/api/sz.hpp":
-    char *SZ_compress[T](const pyConfig.Config &conf, 
-                const T *data, size_t &cmpSize)
+    char* SZ_compress[T](const pyConfig.Config &conf, 
+                        const T *data, size_t &cmpSize)
+    void SZ_decompress[T](pyConfig.Config &conf, 
+                        char *cmpData, 
+                        size_t cmpSize, 
+                        T *&decData)
+    T *SZ_decompress[T](pyConfig.Config &conf, 
+                        char *cmpData, 
+                        size_t cmpSize)
+
+cdef extern from "SZ3/utils/Statistic.hpp" namespace "SZ3":
+    void verify[Type](Type *ori_data, Type *data, size_t num_elements)
+

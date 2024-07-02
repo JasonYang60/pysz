@@ -2,6 +2,8 @@
 from pysz cimport sz
 from pysz cimport pyConfig
 cimport cython
+from cython.operator cimport dereference
+
 # Define the macros as constants in Cython
 cdef int SZ_FLOAT   = -1
 cdef int SZ_DOUBLE  = 1
@@ -52,12 +54,21 @@ cdef class sz:
     def setDims(this, *args):
         this.conf.setDims(*args)
 
+    cdef __getFileSize(this, filePath):
+        import os
+        return <size_t> os.path.getsize(filePath)
     # read and write
-    def readfile(this, inPath):
+    def readfile(this, inPath, *args):
         # convert python string to char*
         cdef string inPathStr = <bytes> inPath.encode('utf-8')
         cdef char *inPathBytes = &inPathStr[0]
-
+        cdef cmpSize = 0;
+        if len(args) == 1 and args[0] == '-d':
+            print('decompression mode')
+            cmpSize = this.__getFileSize(inPath)
+            this.inBytesPtr = malloc(cmpSize)
+            readfile[char](inPathBytes, cmpSize, <char*> this.inBytesPtr)
+            return
         if this.dataType == SZ_TYPE_EMPTY:
             raise TypeError("Can not read file. Data type not set")
         elif this.dataType == SZ_FLOAT:
@@ -78,8 +89,31 @@ cdef class sz:
 
     # compress func
     def compress(this):
+        # debug
+        this.conf.conf.absErrorBound = 1e-3
+
         cdef char *outBytes = SZ_compress[double](this.conf.conf, <double*> this.inBytesPtr, this.outSize)
         this.outBytesPtr = <void*> outBytes
+        
+
+        # log info
+        compression_ratio = this.conf.conf.num * 1.0 * sizeof(double) / this.outSize
+        print(f"compression ratio = {compression_ratio:.2f}")
+        print(this.conf.conf.lossless)
+    
+    # decompress func
+    def decompress(this, inPath):
+        cdef size_t cmpSize = this.__getFileSize(inPath) / sizeof(double)
+        print(cmpSize)
+        cdef double *decData = SZ_decompress[double](this.conf.conf, <char*> this.inBytesPtr, cmpSize)
+        this.outBytesPtr = <void*> decData
+        this.outSize = this.conf.conf.num
+
+    def verify(this):
+        free(this.inBytesPtr)
+        this.readfile('testdouble_8_8_128.dat')
+        verify[double](<double*> this.inBytesPtr, <double*> this.outBytesPtr, this.conf.conf.num)
+        print("verification completed")
 
     def free(this):
         free(this.inBytesPtr)
