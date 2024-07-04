@@ -90,13 +90,15 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 from Cython.Build import cythonize
+import setuptools_scm
+
 configuration = {
     'name': 'pysz',
+    'version': setuptools_scm.get_version(),
     'packages': find_packages(),
-    'setup_requires': ['cython>=0.17', 'requests'],
+    'setup_requires': ['cython>=0.17', 'requests', 'setuptools_scm'],
     'ext_modules': extensions(),
-    # 'use_scm_version': True,
-    # 'cmdclass': {'build_ext': specialized_build_ext},
+    'use_scm_version': True,
     'description': "A python wrapper for the SZ compression libary",
     'long_description': long_description,
     'long_description_content_type': 'text/markdown',
