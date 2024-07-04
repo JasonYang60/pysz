@@ -1,5 +1,5 @@
 # pysz
-Author: Jason Yang
+Author: Jason Yang\
 A user-friendly and easy-to-maintain python wrapper for SZ3 using a python-to-c package Cython>=3.0.10.
 Pysz is fully based on SZ3(url:https://github.com/szcompressor/SZ3). Pure C++ shared library is incorporated into pysz interface through Cython, so the compression && decompression procedure is running way more faster than Python code.
 
