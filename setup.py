@@ -34,6 +34,28 @@ def build_cxx(src_path):
     print("Running make...")
     run_command("make", cwd=build_dir)
 
+def main():
+    repo_url = "https://github.com/szcompressor/SZ3/archive/refs/heads/master.zip"
+    download_dest = "master.zip"
+    extract_dest = "./"
+
+    # download src code(packed .zip file)
+    print("Downloading code from Github...")
+    download_file(repo_url, download_dest)
+
+    # unpack it to extract_dest
+    print("Extracting downloaded file...")
+    import shutil
+    import os
+    shutil.unpack_archive(download_dest, extract_dest)
+    os.remove(download_dest)
+
+    # compile & build from c++ file, c++ 17 standard required
+    build_cxx("SZ3-master")
+
+if __name__ == "__main__":
+    main()
+# ------------------------------------------------------
 def extensions():
     from Cython.Build import cythonize
     exts = []
@@ -64,28 +86,6 @@ def extensions():
     return cythonize(exts)
 
 
-def main():
-    repo_url = "https://github.com/szcompressor/SZ3/archive/refs/heads/master.zip"
-    download_dest = "master.zip"
-    extract_dest = "./"
-
-    # download src code(packed .zip file)
-    print("Downloading code from Github...")
-    download_file(repo_url, download_dest)
-
-    # unpack it to extract_dest
-    print("Extracting downloaded file...")
-    import shutil
-    import os
-    shutil.unpack_archive(download_dest, extract_dest)
-    os.remove(download_dest)
-
-    # compile & build from c++ file, c++ 17 standard required
-    build_cxx("SZ3-master")
-
-if __name__ == "__main__":
-    main()
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -100,9 +100,9 @@ configuration = {
     'description': "A python wrapper for the SZ compression libary",
     'long_description': long_description,
     'long_description_content_type': 'text/markdown',
-    'url': 'https://github.com/yourusername/my_package',
+    'url': 'https://github.com/JasonYang60/pysz',
     'author': "Jason Yang",
-    'author_email': '',
+    'author_email': 'jason.neptune.yang@gmail.com',
     'license': 'MIT',
     'install_requires': [
         'cython>=3.0.10'

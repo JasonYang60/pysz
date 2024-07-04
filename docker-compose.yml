@@ -1,8 +1,0 @@
-# bind mounted folder (current work dir) on container 
-# docker-compose up --remove-orphans 
-#
-services:
-  pysz_service:
-    image: pysz
-    volumes:
-      - E:\Documents\GitHub\pysz:/home/pysz
