@@ -31,6 +31,50 @@ from setuptools.extension import Extension
 #     def __len__(self):
 #         return len(self.c_list())
 
+def download_file(url, dest):
+    import requests
+    response = requests.get(url, stream = True)
+    with open(dest, 'wb') as file:
+        for chunk in response.iter_content(chunk_size = 8192):
+            if chunk:
+                file.write(chunk)
+
+def rename_folder(old_name, new_name):
+    import os
+    try:
+        os.rename(old_name, new_name)
+        print(f"Folder renamed from '{old_name}' to '{new_name}'")
+    except FileNotFoundError:
+        print(f"The folder '{old_name}' does not exist.")
+    except FileExistsError:
+        print(f"The folder '{new_name}' already exists.")
+    except Exception as e:
+        print(f"An error occured: {e}")
+
+def modify_cmake_lists_to_disable_zstd_pkg(cmakelist_path):
+    with open(cmakelist_path, 'r') as file:
+        lines = file.readlines()
+    for i, line in enumerate(lines):
+        if "pkg_search_module(ZSTD IMPORTED_TARGET libzstd)" in line:
+            lines[i] = "# pkg_search_module(ZSTD IMPORTED_TARGET libzstd)\n"
+    with open(cmakelist_path, 'w') as file:
+        file.writelines(lines)
+
+def run_command(command, cwd = None):
+    import subprocess
+    process = subprocess.Popen(command, shell=True, cwd=cwd)
+    process.communicate()
+    if process.returncode != 0:
+        raise Exception(f"Command '{command}' failed with return code {process.returncode}")
+
+def build_cxx(src_path):
+    import os
+    build_dir = os.path.join(src_path, "build")
+    os.makedirs(build_dir, exist_ok=True)
+    print("Running cmake...")
+    run_command("cmake ..", cwd=build_dir)
+    print("Running make...")
+    run_command("make", cwd=build_dir)
 
 def extensions():
     import numpy
@@ -76,6 +120,29 @@ def extensions():
                     ))
     return cythonize(exts)
 
+
+def main():
+    repo_url = "https://github.com/szcompressor/SZ3/archive/refs/heads/master.zip"
+    download_dest = "master.zip"
+    extract_dest = "SZ3_download"
+
+    # download src code(packed .zip file)
+    print("Downloading code from Github...")
+    download_file(repo_url, download_dest)
+
+    # unpack it to extract_dest
+    print("Extracting downloaded file...")
+    import shutil
+    shutil.unpack_archive(download_dest, extract_dest)
+
+    rename_folder(extract_dest + "/SZ3-master", extract_dest + "/SZ3")
+
+    modify_cmake_lists_to_disable_zstd_pkg(extract_dest + "/SZ3" + "/CMakeLists.txt")
+
+    build_cxx(extract_dest + "/SZ3")
+
+if __name__ == "__main__":
+    main()
 
 # class specialized_build_ext(build_ext, object):
 #     """
