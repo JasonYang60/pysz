@@ -57,7 +57,7 @@ compressor.set_errorBoundMode('ABS')
 compressor.print_errorBoundMode()
 compressor.set_absErrorBound(1e-3)
 ```
-## Requiremente
+## Requirements
 Python>=3.10
 
 ## Installation
@@ -78,7 +78,7 @@ Then
 ```bash
 pip install .
 ```
-\
+
 
 To pack this project, some python setup tool package (`wheel`, `build`) and are required.
 ```bash
