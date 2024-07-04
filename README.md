@@ -5,7 +5,6 @@ A python wrapper for SZ3.0.
 ## Installation
 
 ```bash
-cp -r /home/SZ/ .
 pip install -e .
 ```
 ## Launch in docker
