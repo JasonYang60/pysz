@@ -35,6 +35,14 @@ def build_cxx(src_path):
     run_command("make", cwd=build_dir)
 
 def main():
+    import shutil
+    import os
+
+    # If c++ file already compiled
+    if os.path.exists("SZ3-master/build"):
+        print("SZ3 lib found")
+        return
+
     repo_url = "https://github.com/szcompressor/SZ3/archive/refs/heads/master.zip"
     download_dest = "master.zip"
     extract_dest = "./"
@@ -45,8 +53,7 @@ def main():
 
     # unpack it to extract_dest
     print("Extracting downloaded file...")
-    import shutil
-    import os
+    
     shutil.unpack_archive(download_dest, extract_dest)
     os.remove(download_dest)
 
@@ -90,25 +97,23 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 from Cython.Build import cythonize
-import setuptools_scm
 
 configuration = {
-    'name': 'pysz',
-    'version': setuptools_scm.get_version(),
+    #'name': 'pysz',
     'packages': find_packages(),
-    'setup_requires': ['cython>=0.17', 'requests', 'setuptools_scm'],
+    #'setup_requires': ['cython>=3.0.10', 'requests',],
     'ext_modules': extensions(),
-    'use_scm_version': True,
-    'description': "A python wrapper for the SZ compression libary",
-    'long_description': long_description,
-    'long_description_content_type': 'text/markdown',
-    'url': 'https://github.com/JasonYang60/pysz',
-    'author': "Jason Yang",
-    'author_email': 'jason.neptune.yang@gmail.com',
-    'license': 'MIT',
-    'install_requires': [
-        'cython>=3.0.10'
-    ],
+    #'use_scm_version': True,
+    #'description': "A python wrapper for the SZ3 compression library",
+    #'long_description': long_description,
+    #'long_description_content_type': 'text/markdown',
+    #'url': 'https://github.com/JasonYang60/pysz',
+    #'author': "Jason Yang",
+    #'author_email': 'jason.neptune.yang@gmail.com',
+    #'license': 'MIT',
+    #'install_requires': [
+    #    'cython>=3.0.10'
+    #],
 }
 
 setup(**configuration)

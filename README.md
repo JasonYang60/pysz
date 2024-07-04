@@ -65,17 +65,32 @@ Cython>=3.0.10\
 requests
 ## Installation
 
-### Method 1. install from source
+### Method 1. install from .whl
+If you are running a linux system and using x86 or x64 CPU platform, pysz can be installed directly from a pre-compiled `.whl` file(eg. `pysz-0.0.2-cp312-cp312-linux_x86_64.whl`) located in `./dist/`. 
 ```bash
 git clone https://github.com/JasonYang60/pysz.git
 cd pysz
-pip install .
+mv ./dist/pysz-0.0.2-cp312-cp312-linux_x86_64.whl ./
+pip install pysz-0.0.2-cp312-cp312-linux_x86_64.whl
 ```
 ### Method 2. local compilation
-Pysz uses python-to-c package Cython>=3.0.10, so what `setup.py` does includes downloading c++ source code from github and cmake && make compilation.\
-make sure you got cmake && gcc installed.
+According to your system && CPU platform, if a coresponding `.whl` is absent, you should compile pysz locally.\
+First, Make sure cmake && gcc installed.\
+Pysz uses python-to-c package Cython>=3.0.10, so what `setup.py` does includes downloading c++ source code from github and automatically applying cmake && make command to finish c++ code compilation.\
+Then
 ```bash
-pip install -e .
+pip install .
+```
+\
+
+To pack this project, some python setup tool package (`wheel`, `build`) and are required.
+```bash
+pip install wheel
+pip install build
+```
+Run following code to generate `.whl` and `.tar.gz` in `./dist`:
+```bash
+python -m build
 ```
 ### Method 3. install from Pypi
 Not supported yet
