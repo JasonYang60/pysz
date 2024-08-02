@@ -47,7 +47,7 @@ cdef extern from "SZ3/utils/Config.hpp" namespace "SZ3":
         int interpBlockSize
         int quantbinCnt
         int blockSize
-        int stride #not used now
+        int stride # not used now
         int pred_dim # not used now
 
 cdef class pyConfig:

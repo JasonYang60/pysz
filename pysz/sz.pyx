@@ -13,7 +13,6 @@ cdef class sz:
     cdef pyConfig.pyConfig conf
     cdef int dataType
 
-
     def __init__(this, *args):
         this.conf = pyConfig.pyConfig(*args)
         this.dataType = SZ_TYPE_EMPTY
@@ -78,7 +77,6 @@ cdef class sz:
         cdef fileSize = this.__getFileSize(inPath)
         if len(args) == 1 and args[0] == '-d':
             print('decompression mode')
-            print('cmpSize: ', this.cmpSize)
             this.inBytesPtr = malloc(fileSize)
             readfile[char](inPathBytes, fileSize, <char*> this.inBytesPtr)
         elif len(args) > 0:
@@ -99,12 +97,7 @@ cdef class sz:
         # convert python string to char*
         cdef string outPathStr = <bytes> outPath.encode('utf-8')
         cdef char* outPathPtr = &outPathStr[0]
-        if this.dataType == SZ_FLOAT:
-            writefile[float](outPathPtr, <float*> this.outBytesPtr, this.cmpSize)
-        elif this.dataType == SZ_DOUBLE:
-            writefile[double](outPathPtr, <double*> this.outBytesPtr, this.cmpSize)
-        else:
-            print("Error: data type not supported")
+        writefile[char](outPathPtr, <char*> this.outBytesPtr, this.cmpSize)
 
     # compress func
     def compress(this):
@@ -119,13 +112,8 @@ cdef class sz:
     # decompress func
     def decompress(this):
         if this.dataType == SZ_FLOAT:
-            print("cmpSize: ", this.cmpSize)
-            print("# of elements: "this.cmpSize / 4)
-            
             this.outBytesPtr = <void*> SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
-
         elif this.dataType == SZ_DOUBLE:
-            print(this.cmpSize)
             this.outBytesPtr = <void*> SZ_decompress[double](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
         else:
             raise TypeError("data type not supported")
@@ -155,7 +143,6 @@ cdef class sz:
         free(this.inBytesPtr)
         this.readfile(filePath)
         if this.dataType == SZ_FLOAT:
-            print('c')
             verify[float](<float*> this.inBytesPtr, <float*> this.outBytesPtr, this.conf.conf.num)
         elif this.dataType == SZ_DOUBLE:
             verify[double](<double*> this.inBytesPtr, <double*> this.outBytesPtr, this.conf.conf.num)

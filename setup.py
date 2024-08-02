@@ -1,6 +1,8 @@
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
+branch = 'bio'
+
 def download_file(url, dest):
     import requests
     response = requests.get(url, stream = True)
@@ -8,15 +10,6 @@ def download_file(url, dest):
         for chunk in response.iter_content(chunk_size = 8192):
             if chunk:
                 file.write(chunk)  
-
-def modify_cmake_lists_to_disable_zstd_pkg(cmakelist_path):
-    with open(cmakelist_path, 'r') as file:
-        lines = file.readlines()
-    for i, line in enumerate(lines):
-        if "pkg_search_module(ZSTD IMPORTED_TARGET libzstd)" in line:
-            lines[i] = "# pkg_search_module(ZSTD IMPORTED_TARGET libzstd)\n"
-    with open(cmakelist_path, 'w') as file:
-        file.writelines(lines)
 
 def run_command(command, cwd = None):
     import subprocess
@@ -39,12 +32,12 @@ def main():
     import os
 
     # If c++ file already compiled
-    if os.path.exists("SZ3-master/build"):
+    if os.path.exists("SZ3-" + branch + "/build"):
         print("SZ3 lib found")
         return
 
-    repo_url = "https://github.com/szcompressor/SZ3/archive/refs/heads/master.zip"
-    download_dest = "master.zip"
+    repo_url = "https://github.com/szcompressor/SZ3/archive/refs/heads/" + branch + ".zip"
+    download_dest = "sz.zip"
     extract_dest = "./"
 
     # download src code(packed .zip file)
@@ -58,10 +51,11 @@ def main():
     os.remove(download_dest)
 
     # compile & build from c++ file, c++ 17 standard required
-    build_cxx("SZ3-master")
+    build_cxx("SZ3-" + branch)
 
 if __name__ == "__main__":
     main()
+
 # ------------------------------------------------------
 def extensions():
     from Cython.Build import cythonize
@@ -69,26 +63,24 @@ def extensions():
     
     exts.append(Extension("pysz.pyConfig",
                     sources=["pysz/pyConfig.pyx"],
-                    include_dirs=['SZ3-master/include',
-                                'SZ3-master/build/include'],
+                    include_dirs=['SZ3-' + branch + '/include',
+                                'SZ3-' + branch + '/build/include'],
                     libraries=["SZ3c","zstd"],  # Unix-like specific,
-                    library_dirs=["SZ3-master/build/tools/sz3c", 
-                                "SZ3-master/build/tools/zstd"],
+                    library_dirs=["SZ3-" + branch + "/build/tools/sz3c", 
+                                "SZ3-" + branch + "/build/tools/zstd"],
                     language='c++',
                     extra_compile_args=['-std=c++17'],
-                    # extra_link_args=['-Wl,-rpath,/usr/local/lib']
                     ))
 
     exts.append(Extension("pysz.sz",
                     sources=["pysz/sz.pyx"],
-                    include_dirs=['SZ3-master/include',
-                                'SZ3-master/build/include'],
+                    include_dirs=['SZ3-' + branch + '/include',
+                                'SZ3-' + branch + '/build/include'],
                     libraries=["SZ3c","zstd"],  # Unix-like specific,
-                    library_dirs=["SZ3-master/build/tools/sz3c", 
-                                "SZ3-master/build/tools/zstd"],
+                    library_dirs=["SZ3-" + branch + "/build/tools/sz3c", 
+                                "SZ3-" + branch + "/build/tools/zstd"],
                     language='c++',
                     extra_compile_args=['-std=c++17'],
-                    # extra_link_args=['-Wl,-rpath,/usr/local/lib']
                     ))
     return cythonize(exts)
 
@@ -99,21 +91,8 @@ with open("README.md", "r") as fh:
 from Cython.Build import cythonize
 
 configuration = {
-    #'name': 'pysz',
     'packages': find_packages(),
-    #'setup_requires': ['cython>=3.0.10', 'requests',],
     'ext_modules': extensions(),
-    #'use_scm_version': True,
-    #'description': "A python wrapper for the SZ3 compression library",
-    #'long_description': long_description,
-    #'long_description_content_type': 'text/markdown',
-    #'url': 'https://github.com/JasonYang60/pysz',
-    #'author': "Jason Yang",
-    #'author_email': 'jason.neptune.yang@gmail.com',
-    #'license': 'MIT',
-    #'install_requires': [
-    #    'cython>=3.0.10'
-    #],
 }
 
 setup(**configuration)
