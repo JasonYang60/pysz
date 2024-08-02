@@ -9,16 +9,17 @@ cdef class sz:
     # private c++ variables
     cdef void * inBytesPtr
     cdef void * outBytesPtr
-    cdef size_t outSize
+    cdef size_t cmpSize
     cdef pyConfig.pyConfig conf
     cdef int dataType
+
 
     def __init__(this, *args):
         this.conf = pyConfig.pyConfig(*args)
         this.dataType = SZ_TYPE_EMPTY
         this.inBytesPtr = NULL
         this.outBytesPtr = NULL
-        outSize = 0
+        cmpSize = 0
 
     def setType(this, typeStr):
         types = {
@@ -74,12 +75,19 @@ cdef class sz:
         # convert python string to char*
         cdef string inPathStr = <bytes> inPath.encode('utf-8')
         cdef char *inPathBytes = &inPathStr[0]
+        cdef fileSize = this.__getFileSize(inPath)
         if len(args) == 1 and args[0] == '-d':
             print('decompression mode')
-            this.outSize = this.__getFileSize(inPath)
-            print(this.outSize)
-            this.inBytesPtr = malloc(this.outSize)
-            readfile[char](inPathBytes, this.outSize, <char*> this.inBytesPtr)
+            #if this.dataType == SZ_FLOAT:
+            #    this.cmpSize = fileSize / sizeof(float)
+            #elif this.dataType == SZ_DOUBLE:
+            #    this.cmpSize = fileSize / sizeof(double)
+            #else:
+            #    print("Error: data type not supported")
+            print('cmpSize: ', this.cmpSize)
+
+            this.inBytesPtr = malloc(fileSize)
+            readfile[char](inPathBytes, fileSize, <char*> this.inBytesPtr)
         elif len(args) > 0:
             raise SyntaxError("Wrong input")
         else:
@@ -98,40 +106,45 @@ cdef class sz:
         # convert python string to char*
         cdef string outPathStr = <bytes> outPath.encode('utf-8')
         cdef char* outPathPtr = &outPathStr[0]
-        
-        writefile[double](outPathPtr, <double*> this.outBytesPtr, this.outSize)
+        if this.dataType == SZ_FLOAT:
+            writefile[float](outPathPtr, <float*> this.outBytesPtr, this.cmpSize)
+        elif this.dataType == SZ_DOUBLE:
+            writefile[double](outPathPtr, <double*> this.outBytesPtr, this.cmpSize)
+        else:
+            print("Error: data type not supported")
 
     # compress func
     def compress(this):
         if this.dataType == SZ_FLOAT:
-            this.outBytesPtr = <void*> SZ_compress[float](this.conf.conf, <float*> this.inBytesPtr, this.outSize)
+            this.outBytesPtr = <void*> SZ_compress[float](this.conf.conf, <float*> this.inBytesPtr, this.cmpSize)
         elif this.dataType == SZ_DOUBLE:
-            this.outBytesPtr = <void*> SZ_compress[double](this.conf.conf, <double*> this.inBytesPtr, this.outSize)
+            this.outBytesPtr = <void*> SZ_compress[double](this.conf.conf, <double*> this.inBytesPtr, this.cmpSize)
         else:
             raise TypeError("data type not supported")
 
-        # log info
-        #compression_ratio = this.conf.conf.num * 1.0 * sizeof(double) / this.outSize
-        #print(f"compression ratio = {compression_ratio:.2f}")
     
     # decompress func
     def decompress(this):
         if this.dataType == SZ_FLOAT:
-            this.outBytesPtr = <void*> SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, <size_t>(this.outSize / sizeof(float)))
+            print("dcmpr;float: ", this.cmpSize)
+            print("cmpSize:", this.cmpSize)
+            # this.outBytesPtr = malloc(this.cmpSize * sizeof(float))
+            print("float sz:", sizeof(float))            
+            #SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize, this.outFloat)
+            
+            this.outBytesPtr = <void*> SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
+
         elif this.dataType == SZ_DOUBLE:
-            print(this.outSize)
-            this.outBytesPtr = <void*> SZ_decompress[double](this.conf.conf, <char*> this.inBytesPtr, <size_t>(this.outSize / sizeof(double)))
+            print(this.cmpSize)
+            this.outBytesPtr = <void*> SZ_decompress[double](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
         else:
             raise TypeError("data type not supported")
-        this.outSize = this.conf.conf.num
+        this.cmpSize = this.conf.conf.num
     
     # Utils
     def __timing_decorator(func):
         import time
         def wrapper(*args, **kwargs):
-
-            
-
             start_time = time.time()
             result = func(*args, **kwargs)
             end_time = time.time()
@@ -148,11 +161,20 @@ cdef class sz:
     def decompress_timing(this):
         this.decompress()
 
-    def verify(this):
+    def verify(this, filePath):
         free(this.inBytesPtr)
-        this.readfile('testdouble_8_8_128.dat')
-        verify[double](<double*> this.inBytesPtr, <double*> this.outBytesPtr, this.conf.conf.num)
+        this.readfile(filePath)
+        if this.dataType == SZ_FLOAT:
+            print('c')
+            verify[float](<float*> this.inBytesPtr, <float*> this.outBytesPtr, this.conf.conf.num)
+        elif this.dataType == SZ_DOUBLE:
+            verify[double](<double*> this.inBytesPtr, <double*> this.outBytesPtr, this.conf.conf.num)
+        else:
+            raise TypeError("data type not supported")
         print("verification completed")
+        # log info
+        compression_ratio = this.__getFileSize(filePath) * 1.0 / this.__getFileSize(filePath + '.sz')
+        print(f"compression ratio = {compression_ratio:.2f}")
 
     def free(this):
         free(this.inBytesPtr)
