@@ -78,14 +78,7 @@ cdef class sz:
         cdef fileSize = this.__getFileSize(inPath)
         if len(args) == 1 and args[0] == '-d':
             print('decompression mode')
-            #if this.dataType == SZ_FLOAT:
-            #    this.cmpSize = fileSize / sizeof(float)
-            #elif this.dataType == SZ_DOUBLE:
-            #    this.cmpSize = fileSize / sizeof(double)
-            #else:
-            #    print("Error: data type not supported")
             print('cmpSize: ', this.cmpSize)
-
             this.inBytesPtr = malloc(fileSize)
             readfile[char](inPathBytes, fileSize, <char*> this.inBytesPtr)
         elif len(args) > 0:
@@ -126,11 +119,8 @@ cdef class sz:
     # decompress func
     def decompress(this):
         if this.dataType == SZ_FLOAT:
-            print("dcmpr;float: ", this.cmpSize)
-            print("cmpSize:", this.cmpSize)
-            # this.outBytesPtr = malloc(this.cmpSize * sizeof(float))
-            print("float sz:", sizeof(float))            
-            #SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize, this.outFloat)
+            print("cmpSize: ", this.cmpSize)
+            print("# of elements: "this.cmpSize / 4)
             
             this.outBytesPtr = <void*> SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
 
