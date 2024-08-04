@@ -79,8 +79,8 @@ Then
 pip install .
 ```
 
-
-To pack this project, some python setup tool package (`wheel`, `build`) and are required.
+#### Pre-compiled .whl file
+To pack this project up with .whl file, some python setup tool package (`wheel`, `build`) and are required.
 ```bash
 pip install wheel
 pip install build
@@ -89,6 +89,7 @@ Run following code to generate `.whl` and `.tar.gz` in `./dist`:
 ```bash
 python -m build
 ```
+tip: there is still some issues remaining to be fixed.
 ### Method 3. install from Pypi
 Not supported yet
 
