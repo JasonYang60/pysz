@@ -1,86 +1,56 @@
 from pysz import sz
 import numpy as np
-# # setup configuration of compression
-# # compressor = sz.sz(101,203869,3)
-# # compressor = sz.sz(101, 203869, 1)
-dim = (101, 203869, 3)
 
+# setup dimension
+dim = (101, 203869, 3)
 compressor = sz.sz(*dim)
 
-# # print("size of input: ", compressor.getDims())
 filename = 'traj_xyz.dat'
-# # # filename = 'traj_reshaped.dat'
-# filename = 'testfloat_8_8_128.dat'
-# # # filename = 'testdouble_8_8_128.dat'
+datatype = 'float'
+# --------------------------------------------------
+#
+# Usage 1: Numpy array I/O
+# --------------------------------------------------
 
 # prepare your data in numpy array format
-data = np.fromfile(filename, dtype=np.float32)
-data = np.reshape(data, dim)
+rawData = np.fromfile(filename, dtype=np.float32)
+rawData = np.reshape(rawData, dim)
 
-array = compressor.compress('float', 'sz3.config', filename)
-print("shape: ", array.shape)
-compressor.free()
-array = compressor.decompress('float', 'sz3.config', filename + '.sz')
-compressor.verify(filename)
-# # compressor.loadcfg('sz3.config')
-# # compressor.setType('double')
-# # # compressor.setType('float')
-# # compressor.set_errorBoundMode('ABS')
-# # compressor.set_absErrorBound(1e-3)
+# compression
+cmpData1, cmp_ratio = compressor.compress(datatype, 'sz3.config', rawData)
+print("cmp_ratio: ", cmp_ratio)
 
-# # compressor.readfile(filename)
-# # compressor.compress_timing()
-# # compressor.writefile(filename + '.sz')
-# # # outArray = compressor.save_into_numpyArray()
+# decompression
+cmpData2 = np.fromfile(filename + '.sz', dtype=np.uint8) 
+# tips: uint8 is the only legal type for compressed data
+decmpData = compressor.decompress(datatype, 'sz3.config', cmpData2)
 
-# # # print("shape: ", outArray.shape)
-# # # print("The first 10 # in array: ", outArray.flatten()[:10])
+# --------------------------------------------------
+#
+# Usage 2: File I/O
+# --------------------------------------------------
 
-# # # remember to free memory from pile 
-# # # when finishing writing data to file
-# # compressor.free()
+# compression
+cmpData3, cmp_ratio_2 = compressor.compress(datatype, 'sz3.config', filename)
 
-# # print('decompressing...')
+# decompression
+decmpData2 = compressor.decompress(datatype, 'sz3.config', filename + '.sz')
 
-# # compressor.readfile(filename + '.sz', '-d')
-# # compressor.decompress_timing()
-# # compressor.writefile(filename + '.sz.out')
-# # compressor.verify(filename)
+# --------------------------------------------------
+#
+# Verification
+# --------------------------------------------------
 
-# # # reset
-# compressor.clear()
-
-# compressor = sz.sz(*dim)
+compressor.verify(datatype, 'sz3.config', filename, filename + '.sz')
+# or using numpy array:
+# compressor.verify(datatype, 'sz3.config', rawData, cmpData)
 
 
+print(np.array_equal(cmpData1, cmpData2))
+print(np.array_equal(cmpData2, cmpData3))
+print(np.array_equal(decmpData, decmpData2))
+print(np.array_equal(decmpData, rawData))
+print(decmpData.shape)
+print(rawData.shape)
 
-# compressor.loadcfg('sz3.config')
-# compressor.setType('double')
-# # compressor.setType('float')
-# compressor.set_errorBoundMode('ABS')
-# compressor.set_absErrorBound(1e-3)
-
-# # compressor.load_from_numpyArray(data)
-# # compressor.compress_timing()
-# # cmpArray = compressor.save_into_numpyArray()
-# # compressor.writefile(filename + '.sz')
-
-# # print("shape: ", cmpArray.shape)
-# # print("The first 10 # in array: ", cmpArray.flatten()[:10])
-
-# compressor.free()
-
-# print("decompressing...")
-# compressor.readfile(filename + '.sz', '-d')
-# print(1)
-# compressor.decompress_timing()
-# print(2)
-# dcmpArray = compressor.save_decompressed_data_into_numpyArray()
-# # print(b)
-# # print("size of dcmpArray: ", dcmpArray.size)
-# # print("The first 10 # in decompressed array: ", dcmpArray.flatten()[0])
-
-# compressor.verify(filename)
-
-
-
+print(cmp_ratio == cmp_ratio_2)
