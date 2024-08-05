@@ -21,7 +21,7 @@ cdef class sz:
         this.outBytesPtr = NULL
         cmpSize = 0
 
-    def setType(this, typeStr):
+    def setDataType(this, typeStr):
         types = {
             'float'     : SZ_FLOAT,
             'double'    : SZ_DOUBLE,
@@ -33,31 +33,6 @@ cdef class sz:
         this.dataType = types.get(typeStr)
 
     # set & print config
-    def set_errorBoundMode(this, EB):
-        EBs = {
-            'ABS'   : pyConfig.EB_ABS,
-            'REL'   : pyConfig.EB_REL,
-            'PSNR'  : pyConfig.EB_PSNR,
-            'L2NORM': pyConfig.EB_L2NORM,
-            'ABS_AND_REL'   : pyConfig.EB_ABS_AND_REL,
-            'ABS_OR_REL'    : pyConfig.EB_ABS_OR_REL,
-        }
-        this.conf.conf.errorBoundMode = EBs.get(EB)
-        if not EB in EBs:
-            raise TypeError("Input Error: failed to set errorBoundMode.") 
-        else:
-            print("errorBoundMode set to " + EB)
-
-    def print_errorBoundMode(this):
-        print("errorBoundMode = ", this.conf.conf.errorBoundMode)
-
-    def set_absErrorBound(this, abs):
-        if not isinstance(abs, float):
-            raise TypeError("Wrong params type")
-        this.conf.conf.absErrorBound = abs
-    def get_absErrorBound(this):
-        return this.conf.conf.absErrorBound
-    
     # pyConfig func
     def loadcfg(this, cfgPath):
         this.conf.loadcfg(cfgPath)
@@ -108,7 +83,7 @@ cdef class sz:
         cdef char* outPathPtr = &outPathStr[0]
         writefile[char](outPathPtr, <char*> this.outBytesPtr, this.cmpSize)
 
-    def load_from_numpyArray(this, array):
+    def __load_from_numpyArray(this, array):
         if not isinstance(array, np.ndarray):
             raise TypeError("Wrong params type")
         dim = array.shape
@@ -124,7 +99,7 @@ cdef class sz:
         this.setDims(*dim)
         this.__numpy_array_to_inBytesPtr(array)
 
-        
+    
     def __numpy_array_to_inBytesPtr(this, array):
         cdef int n = array.size
         flattened_array = array.flatten()
@@ -141,27 +116,29 @@ cdef class sz:
         print("The first 10 # in __flatened_array: ", flattened_array.flatten()[:10])
         print("The first 10 # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[2])
 
-    def save_decompressed_data_into_numpyArray(this):
-        cdef int confSize = dereference(<int*>(this.inBytesPtr + (this.cmpSize - sizeof(int))))
-        cdef size_t dataSize = this.cmpSize - confSize
-        array = np.empty(this.cmpSize)
+    def __save_compressed_data_into_numpyArray(this):
+        array = np.empty(this.cmpSize, dtype=np.bytes_)
+        for i in range(array.size):
+            array[i] = (<char*>this.outBytesPtr)[i]
+        return array
+
+    def __save_decompressed_data_into_numpyArray(this):
+        array = np.empty(this.conf.conf.num)
         if this.dataType == SZ_FLOAT:
-            array = np.empty(dataSize)
             array = array.astype(np.float32)
             for i in range(array.size):
-                array[i] = (<float*> this.outBytesPtr)[i * sizeof(float)]
+                array[i] = (<float*> this.outBytesPtr)[i]
         elif this.dataType == SZ_DOUBLE:
-            array = np.empty(dataSize)
             array = array.astype(np.float64)
             for i in range(array.size):
-                array[i] = (<double*> this.outBytesPtr)[i * sizeof(double)]
+                array[i] = (<double*> this.outBytesPtr)[i]
         else:
             print("Error: data type not supported") 
         return array
 
 
     # compress func
-    def compress(this):
+    def __compress(this):
         print("The third # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[2])
         print("The last # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[this.conf.conf.num - 1])
         print("shape: ", this.getDims())
@@ -176,9 +153,27 @@ cdef class sz:
 
         print("The third # in this.outBytesPtr: ", (<double*> this.outBytesPtr)[2])
 
-    
+    def compress(this, dataType, cfgPath, data):
+        this.setDataType(dataType)
+        this.loadcfg(cfgPath)
+        cdef int dataSize = 0
+        
+        array = np.zeros(1)
+        if isinstance(data, np.ndarray):
+            print("Reading data from numpy array...")
+            this.__load_from_numpyArray(data)
+            this.__compress_timing()
+        else:
+            print("Reading data from file: ", data)
+            this.readfile(data)
+            this.__compress_timing()
+            this.writefile(data + '.sz')
+
+        array = this.__save_compressed_data_into_numpyArray()
+        return array
+
     # decompress func
-    def decompress(this):
+    def __decompress(this):
         print("The third # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[2])
         print("The last # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[this.conf.conf.num - 1])
         print("shape: ", this.getDims())
@@ -200,6 +195,17 @@ cdef class sz:
         print("N: ", this.conf.conf.N)
         print("cmpSize: ", this.cmpSize)
     
+    def decompress(this, dataType, cfgPath, dataPath):
+        this.setDataType(dataType)
+        this.loadcfg(cfgPath)
+        this.readfile(dataPath, '-d')
+        this.__decompress_timing()
+        this.writefile(dataPath + '.out')
+        array = this.__save_decompressed_data_into_numpyArray()
+        print('flag1')
+        array.reshape(this.getDims())
+        return array
+
     # Utils
     def __timing_decorator(func):
         import time
@@ -213,12 +219,12 @@ cdef class sz:
         return wrapper
 
     @__timing_decorator
-    def compress_timing(this):
-        this.compress()
+    def __compress_timing(this):
+        this.__compress()
 
     @__timing_decorator
-    def decompress_timing(this):
-        this.decompress()
+    def __decompress_timing(this):
+        this.__decompress()
 
     def verify(this, filePath):
         free(this.inBytesPtr)
