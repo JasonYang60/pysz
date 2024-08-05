@@ -1,5 +1,6 @@
 from libcpp.string cimport string
 from libc.stdlib cimport malloc, free
+from libcpp.vector cimport vector
 from pysz cimport pyConfig
 
 cdef enum SZ_TYPE:

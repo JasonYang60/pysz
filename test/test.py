@@ -1,31 +1,56 @@
 from pysz import sz
+import numpy as np
 
-# setup configuration of compression
-compressor = sz.sz(101,203869,3)
-# compressor = sz.sz(101, 203869, 1)
-# compressor = sz.sz(8,8,128)
+# setup dimension
+dim = (101, 203869, 3)
+compressor = sz.sz(*dim)
 
 filename = 'traj_xyz.dat'
-# filename = 'traj_reshaped.dat'
-# filename = 'testfloat_8_8_128.dat'
+datatype = 'float'
+# --------------------------------------------------
+#
+# Usage 1: Numpy array I/O
+# --------------------------------------------------
 
-compressor.loadcfg('sz3.config')
-compressor.setType('float')
-compressor.set_errorBoundMode('ABS')
-compressor.set_absErrorBound(1e-3)
+# prepare your data in numpy array format
+rawData = np.fromfile(filename, dtype=np.float32)
+rawData = np.reshape(rawData, dim)
 
-compressor.readfile(filename)
-compressor.compress_timing()
-compressor.writefile(filename + '.sz')
+# compression
+cmpData1, cmp_ratio = compressor.compress(datatype, 'sz3.config', rawData)
+print("cmp_ratio: ", cmp_ratio)
 
-# remember to free memory from pile 
-# when finishing writing data to file
-compressor.free()
+# decompression
+cmpData2 = np.fromfile(filename + '.sz', dtype=np.uint8) 
+# tips: uint8 is the only legal type for compressed data
+decmpData = compressor.decompress(datatype, 'sz3.config', cmpData2)
 
-print('decompressing...')
+# --------------------------------------------------
+#
+# Usage 2: File I/O
+# --------------------------------------------------
 
-compressor.readfile(filename + '.sz', '-d')
-compressor.decompress_timing()
-compressor.writefile(filename + '.sz.out')
-compressor.verify(filename)
+# compression
+cmpData3, cmp_ratio_2 = compressor.compress(datatype, 'sz3.config', filename)
 
+# decompression
+decmpData2 = compressor.decompress(datatype, 'sz3.config', filename + '.sz')
+
+# --------------------------------------------------
+#
+# Verification
+# --------------------------------------------------
+
+compressor.verify(datatype, 'sz3.config', filename, filename + '.sz')
+# or using numpy array:
+# compressor.verify(datatype, 'sz3.config', rawData, cmpData)
+
+
+print(np.array_equal(cmpData1, cmpData2))
+print(np.array_equal(cmpData2, cmpData3))
+print(np.array_equal(decmpData, decmpData2))
+print(np.array_equal(decmpData, rawData))
+print(decmpData.shape)
+print(rawData.shape)
+
+print(cmp_ratio == cmp_ratio_2)
