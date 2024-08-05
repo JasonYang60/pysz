@@ -24,7 +24,7 @@ cdef class pyConfig:
             for arg in args:
                 if not isinstance(arg, int):
                     raise TypeError("The argument must be an integer.")
-                dims.insert(dims.begin(), arg)
+                dims.push_back(arg)
             self.conf.setDims(dims.begin(), dims.end())
 
     def loadcfg(self, cfgpath):

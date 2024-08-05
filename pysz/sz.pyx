@@ -3,6 +3,7 @@ from pysz cimport sz
 from pysz cimport pyConfig
 cimport cython
 from cython.operator cimport dereference
+import numpy as np
 
 cdef class sz:
     
@@ -12,7 +13,7 @@ cdef class sz:
     cdef size_t cmpSize
     cdef pyConfig.pyConfig conf
     cdef int dataType
-
+    
     def __init__(this, *args):
         this.conf = pyConfig.pyConfig(*args)
         this.dataType = SZ_TYPE_EMPTY
@@ -57,7 +58,6 @@ cdef class sz:
     def get_absErrorBound(this):
         return this.conf.conf.absErrorBound
     
-    
     # pyConfig func
     def loadcfg(this, cfgPath):
         this.conf.loadcfg(cfgPath)
@@ -66,9 +66,17 @@ cdef class sz:
     def setDims(this, *args):
         this.conf.setDims(*args)
 
+    def getDims(this):
+        dims = []
+        cdef vector[size_t] vector_dims = this.conf.conf.dims
+        for i in vector_dims:
+            dims.append(i)
+        return tuple(dims)
+    
     cdef __getFileSize(this, filePath):
         import os
         return <size_t> os.path.getsize(filePath)
+
     # read and write
     def readfile(this, inPath, *args):
         # convert python string to char*
@@ -99,14 +107,69 @@ cdef class sz:
         cdef char* outPathPtr = &outPathStr[0]
         writefile[char](outPathPtr, <char*> this.outBytesPtr, this.cmpSize)
 
+    def load_from_numpyArray(this, array):
+        if not isinstance(array, np.ndarray):
+            raise TypeError("Wrong params type")
+        dim = array.shape
+        if this.dataType == SZ_TYPE_EMPTY:
+            raise TypeError("Can not read file. Data type not set")
+        elif this.dataType == SZ_FLOAT:
+            this.inBytesPtr = malloc(this.conf.conf.num * sizeof(float))
+        elif this.dataType == SZ_DOUBLE:
+            this.inBytesPtr = malloc(this.conf.conf.num * sizeof(double))
+        else:
+            print("Error: data type not supported")        
+
+        this.setDims(*dim)
+        this.__numpy_array_to_inBytesPtr(array)
+
+        
+    def __numpy_array_to_inBytesPtr(this, array):
+        cdef int n = array.size
+        flattened_array = array.flatten()
+        if this.dataType == SZ_FLOAT:
+            this.inBytesPtr = malloc(n * sizeof(float))
+            for i in range(n):
+                (<float*> this.inBytesPtr)[i] = <float> flattened_array[i]
+        elif this.dataType == SZ_DOUBLE:
+            this.inBytesPtr = malloc(n * sizeof(double))
+            for i in range(n):
+                (<double*> this.inBytesPtr)[i] = <double> flattened_array[i]
+        else:
+            print("Error: data type not supported") 
+        print("The first 10 # in __flatened_array: ", flattened_array.flatten()[:10])
+        print("The first 10 # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[2])
+
+    def save_into_numpyArray(this):
+        array = np.empty(this.cmpSize)
+        if this.dataType == SZ_FLOAT:
+            array = array.astype(np.float32)
+            for i in range(array.size):
+                array[i] = (<float*> this.outBytesPtr)[i * sizeof(float)]
+        elif this.dataType == SZ_DOUBLE:
+            array = array.astype(np.float64)
+            for i in range(array.size):
+                array[i] = (<double*> this.outBytesPtr)[i * sizeof(double)]
+        else:
+            print("Error: data type not supported") 
+        return array
+
+
     # compress func
     def compress(this):
+        print("The third # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[2])
+        print("The last # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[this.conf.conf.num - 1])
+        print("shape: ", this.getDims())
+        print("num: ", this.conf.conf.num)
+
         if this.dataType == SZ_FLOAT:
             this.outBytesPtr = <void*> SZ_compress[float](this.conf.conf, <float*> this.inBytesPtr, this.cmpSize)
         elif this.dataType == SZ_DOUBLE:
             this.outBytesPtr = <void*> SZ_compress[double](this.conf.conf, <double*> this.inBytesPtr, this.cmpSize)
         else:
             raise TypeError("data type not supported")
+
+        print("The third # in this.outBytesPtr: ", (<double*> this.outBytesPtr)[2])
 
     
     # decompress func
@@ -156,5 +219,13 @@ cdef class sz:
     def free(this):
         free(this.inBytesPtr)
         free(this.outBytesPtr)
+
+    def clear(this):
+        this.free()
+        this.dataType = SZ_TYPE_EMPTY
+        this.inBytesPtr = NULL
+        this.outBytesPtr = NULL
+        cmpSize = 0
+        this.conf = pyConfig.pyConfig()
 
     
