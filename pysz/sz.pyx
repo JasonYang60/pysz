@@ -84,9 +84,10 @@ cdef class sz:
         cdef char *inPathBytes = &inPathStr[0]
         cdef fileSize = this.__getFileSize(inPath)
         if len(args) == 1 and args[0] == '-d':
-            print('decompression mode')
+            print('decompression mode... ')
             this.inBytesPtr = malloc(fileSize)
             readfile[char](inPathBytes, fileSize, <char*> this.inBytesPtr)
+            this.cmpSize = fileSize
         elif len(args) > 0:
             raise SyntaxError("Wrong input")
         else:
@@ -140,13 +141,17 @@ cdef class sz:
         print("The first 10 # in __flatened_array: ", flattened_array.flatten()[:10])
         print("The first 10 # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[2])
 
-    def save_into_numpyArray(this):
+    def save_decompressed_data_into_numpyArray(this):
+        cdef int confSize = dereference(<int*>(this.inBytesPtr + (this.cmpSize - sizeof(int))))
+        cdef size_t dataSize = this.cmpSize - confSize
         array = np.empty(this.cmpSize)
         if this.dataType == SZ_FLOAT:
+            array = np.empty(dataSize)
             array = array.astype(np.float32)
             for i in range(array.size):
                 array[i] = (<float*> this.outBytesPtr)[i * sizeof(float)]
         elif this.dataType == SZ_DOUBLE:
+            array = np.empty(dataSize)
             array = array.astype(np.float64)
             for i in range(array.size):
                 array[i] = (<double*> this.outBytesPtr)[i * sizeof(double)]
@@ -174,13 +179,26 @@ cdef class sz:
     
     # decompress func
     def decompress(this):
+        print("The third # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[2])
+        print("The last # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[this.conf.conf.num - 1])
+        print("shape: ", this.getDims())
+        print("num: ", this.conf.conf.num)
+        print("N: ", this.conf.conf.N)
+
+
         if this.dataType == SZ_FLOAT:
             this.outBytesPtr = <void*> SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
         elif this.dataType == SZ_DOUBLE:
             this.outBytesPtr = <void*> SZ_decompress[double](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
         else:
             raise TypeError("data type not supported")
-        this.cmpSize = this.conf.conf.num
+        print("after decompression:")
+        print("The third # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[2])
+        print("The last # in this.inBytesPtr: ", (<double*> this.inBytesPtr)[this.conf.conf.num - 1])
+        print("shape: ", this.getDims())
+        print("num: ", this.conf.conf.num)
+        print("N: ", this.conf.conf.N)
+        print("cmpSize: ", this.cmpSize)
     
     # Utils
     def __timing_decorator(func):
@@ -208,7 +226,9 @@ cdef class sz:
         if this.dataType == SZ_FLOAT:
             verify[float](<float*> this.inBytesPtr, <float*> this.outBytesPtr, this.conf.conf.num)
         elif this.dataType == SZ_DOUBLE:
+            print(3)
             verify[double](<double*> this.inBytesPtr, <double*> this.outBytesPtr, this.conf.conf.num)
+            print(4)
         else:
             raise TypeError("data type not supported")
         print("verification completed")

@@ -7,25 +7,25 @@ dim = (128, 8, 8)
 
 compressor = sz.sz(*dim)
 
-print("size of input: ", compressor.getDims())
-# filename = 'traj_xyz.dat'
-# filename = 'traj_reshaped.dat'
+# print("size of input: ", compressor.getDims())
+# # filename = 'traj_xyz.dat'
+# # filename = 'traj_reshaped.dat'
 filename = 'testdouble_8_8_128.dat'
-# filename = 'testdouble_8_8_128.dat'
+# # filename = 'testdouble_8_8_128.dat'
 
-compressor.loadcfg('sz3.config')
-compressor.setType('double')
-# compressor.setType('float')
-compressor.set_errorBoundMode('ABS')
-compressor.set_absErrorBound(1e-3)
+# compressor.loadcfg('sz3.config')
+# compressor.setType('double')
+# # compressor.setType('float')
+# compressor.set_errorBoundMode('ABS')
+# compressor.set_absErrorBound(1e-3)
 
-compressor.readfile(filename)
-compressor.compress_timing()
+# compressor.readfile(filename)
+# compressor.compress_timing()
 # compressor.writefile(filename + '.sz')
-outArray = compressor.save_into_numpyArray()
+# # outArray = compressor.save_into_numpyArray()
 
-print("shape: ", outArray.shape)
-print("The first 10 # in array: ", outArray.flatten()[:10])
+# # print("shape: ", outArray.shape)
+# # print("The first 10 # in array: ", outArray.flatten()[:10])
 
 # # remember to free memory from pile 
 # # when finishing writing data to file
@@ -53,12 +53,27 @@ compressor.setType('double')
 compressor.set_errorBoundMode('ABS')
 compressor.set_absErrorBound(1e-3)
 
-compressor.load_from_numpyArray(data)
-compressor.compress_timing()
-outArray = compressor.save_into_numpyArray()
+# compressor.load_from_numpyArray(data)
+# compressor.compress_timing()
+# cmpArray = compressor.save_into_numpyArray()
 # compressor.writefile(filename + '.sz')
+
+# print("shape: ", cmpArray.shape)
+# print("The first 10 # in array: ", cmpArray.flatten()[:10])
 
 compressor.free()
 
-print("shape: ", outArray.shape)
-print("The first 10 # in array: ", outArray.flatten()[:10])
+print("decompressing...")
+compressor.readfile(filename + '.sz', '-d')
+print(1)
+compressor.decompress_timing()
+print(2)
+dcmpArray = compressor.save_decompressed_data_into_numpyArray()
+# print(b)
+# print("size of dcmpArray: ", dcmpArray.size)
+# print("The first 10 # in decompressed array: ", dcmpArray.flatten()[0])
+
+compressor.verify(filename)
+
+
+
