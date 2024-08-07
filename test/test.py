@@ -1,7 +1,10 @@
 from pysz import sz
 import numpy as np
 
-# setup dimension
+# --------------------------------------------------
+#
+# Prep work: set up dimensions
+# --------------------------------------------------
 dim = (101, 203869, 3)
 compressor = sz.sz(*dim)
 

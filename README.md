@@ -1,6 +1,6 @@
 # pysz
 A user-friendly and easy-to-maintain python wrapper for SZ3 using a python-to-c package Cython>=3.0.10.\
-Pysz is fully based on SZ3(https://github.com/szcompressor/SZ3). The pure SZ3 C++ library is incorporated into pysz interface through Cython, so the compression && decompression function is running much faster than Python code.\
+Pysz is fully based on SZ3(https://github.com/szcompressor/SZ3). The pure SZ3 C++ library is incorporated into pysz interface through Cython, so the compression && decompression function is running much faster than Python code.
 
 
 ## How to use pysz
@@ -23,7 +23,7 @@ decmpData2 = compressor.decompress(datatype, 'sz3.config', filename + '.sz')
 # verification
 compressor.verify(datatype, 'sz3.config', filename, filename + '.sz')
 ```
-Loading data from memory is supported with the replacement of any file path parameter by numpy array.
+The input data can either be the file path to the data file or numpy array contain the data.
 ## Requirements
 Python>=3.10
 
@@ -46,7 +46,7 @@ Then
 pip install .
 ```
 
-#### Pre-compiled .whl file
+#### Generate pre-compiled .whl and .tar.gz file
 To pack this project up with .whl file, some python setup tool package (`wheel`, `build`) and are required.
 ```bash
 pip install wheel
@@ -56,9 +56,14 @@ Run following code to generate `.whl` and `.tar.gz` in `./dist`:
 ```bash
 python -m build
 ```
-tip: there is still some issues remaining to be fixed.
+tip: there is still some issues remaining to be fixed. This command will also work:
+```bash
+python setup.py sdist bdist_wheel
+```
 ### Method 3. install from Pypi
-Not supported yet
+```bash
+pip install pysz
+```
 
 ## Launch in docker
 
@@ -75,6 +80,5 @@ python ./test.py
 ```
 
 ## TODO list:
-add more config setup interfaces\
-support more flexibility of data I/O beyond just from file system\
-test openMP and other utils && features 
+to test openMP and other utils && features \
+more data types to be supported
