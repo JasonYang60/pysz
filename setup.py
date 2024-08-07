@@ -2,6 +2,7 @@ from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
 branch = 'bio'
+# branch = 'main'
 
 def download_file(url, dest):
     import requests

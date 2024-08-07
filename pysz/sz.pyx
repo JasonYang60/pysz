@@ -22,34 +22,34 @@ cdef class sz:
         cmpSize = 0
 
     def compress(this, dataType, cfgPath, data):
-    """
-    Compresses data using the specified configuration and data type.
+        """
+        Compresses data using the specified configuration and data type.
 
-    Parameters:
-    -----------
-    this : object
-        The instance of the class containing this method. It is typically used to access class attributes or methods.
-    
-    dataType : str
-        The data type of the input data to be compressed. It can either be 'float' or 'double'.
-    
-    cfgPath : str
-        The file path to the configuration file used for compression. This file contains the necessary parameters and settings for the compression algorithm.
-    
-    data : str or numpy.ndarray
-        The data to be compressed. This can either be a file path (str) to the data file or a numpy array containing the data.
-    
-    Returns:
-    --------
-    compressed_data : numpy.ndarray
-        The compressed data as a numpy array of dtype 'uint8'. This represents the binary data after compression.
-    
-    compression_ratio : float
-        The compression ratio, which is the ratio of the original data size to the compressed data size.
+        Parameters:
+        -----------
+        this : object
+            The instance of the class containing this method. It is typically used to access class attributes or methods.
+        
+        dataType : str
+            The data type of the input data to be compressed. It can either be 'float' or 'double'.
+        
+        cfgPath : str
+            The file path to the configuration file used for compression. This file contains the necessary parameters and settings for the compression algorithm.
+        
+        data : str or numpy.ndarray
+            The data to be compressed. This can either be a file path (str) to the data file or a numpy array containing the data.
+        
+        Returns:
+        --------
+        compressed_data : numpy.ndarray
+            The compressed data as a numpy array of dtype 'uint8'. This represents the binary data after compression.
+        
+        compression_ratio : float
+            The compression ratio, which is the ratio of the original data size to the compressed data size.
 
-    tips: if the input data type is a file path to the raw data, then a compressed file named after '.sz' would be generated.
+        tips: if the input data type is a file path to the raw data, then a compressed file named after '.sz' would be generated.
 
-    """
+        """
         this.__setDataType(dataType)
         this.__loadcfg(cfgPath)        
         array = np.zeros(1)
@@ -71,29 +71,29 @@ cdef class sz:
         return array, ratio
 
     def decompress(this, dataType, cfgPath, data):
-    """
-    Decompresses data using the specified configuration and data type.
+        """
+        Decompresses data using the specified configuration and data type.
 
-    Parameters:
-    -----------
-    this : object
-        The instance of the class containing this method. It is typically used to access class attributes or methods.
-    
-    dataType : str
-        The data type of the decompressed data. It can either be 'float' or 'double'.
-    
-    cfgPath : str
-        The file path to the configuration file used for decompression. This file contains the necessary parameters and settings for the decompression algorithm.
-    
-    data : numpy.ndarray
-        The compressed data to be decompressed. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
-    
-    Returns:
-    --------
-    decompressed_data : numpy.ndarray
-        The decompressed data as a numpy array with the specified data type ('float' or 'double').
-    
-    """
+        Parameters:
+        -----------
+        this : object
+            The instance of the class containing this method. It is typically used to access class attributes or methods.
+        
+        dataType : str
+            The data type of the decompressed data. It can either be 'float' or 'double'.
+        
+        cfgPath : str
+            The file path to the configuration file used for decompression. This file contains the necessary parameters and settings for the decompression algorithm.
+        
+        data : numpy.ndarray
+            The compressed data to be decompressed. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
+        
+        Returns:
+        --------
+        decompressed_data : numpy.ndarray
+            The decompressed data as a numpy array with the specified data type ('float' or 'double').
+        
+        """
         this.__setDataType(dataType)
         this.__loadcfg(cfgPath)
         array = np.zeros(1)
@@ -112,31 +112,31 @@ cdef class sz:
         return array
 
     def verify(this, dataType, cfgPath, rawData, cmpData):
-    """
-    Verifies the integrity of compressed data by comparing it to the original data.
+        """
+        Verifies the integrity of compressed data by comparing it to the original data.
 
-    Parameters:
-    -----------
-    this : object
-        The instance of the class containing this method. It is typically used to access class attributes or methods.
-    
-    dataType : str
-        The data type of the original and decompressed data. It can either be 'float' or 'double'.
-    
-    cfgPath : str
-        The file path to the configuration file used for compression and decompression. This file contains the necessary parameters and settings for the algorithms.
-    
-    rawData : numpy.ndarray
-        The original data to before compression. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
+        Parameters:
+        -----------
+        this : object
+            The instance of the class containing this method. It is typically used to access class attributes or methods.
+        
+        dataType : str
+            The data type of the original and decompressed data. It can either be 'float' or 'double'.
+        
+        cfgPath : str
+            The file path to the configuration file used for compression and decompression. This file contains the necessary parameters and settings for the algorithms.
+        
+        rawData : numpy.ndarray
+            The original data to before compression. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
 
-    cmpData : numpy.ndarray
-        The decompressed data to be verified, as a numpy array with the same shape and data type as `rawData`. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
+        cmpData : numpy.ndarray
+            The decompressed data to be verified, as a numpy array with the same shape and data type as `rawData`. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
 
-    Returns:
-    --------
-    None
-        This function does not return any value. It performs the verification process and may raise an error or log a message if the data does not match.
-    """
+        Returns:
+        --------
+        None
+            This function does not return any value. It performs the verification process and may raise an error or log a message if the data does not match.
+        """
         print("Verifying... ")
         this.__setDataType(dataType)
         this.__loadcfg(cfgPath)
@@ -167,6 +167,8 @@ cdef class sz:
             verify[float](<float*> this.inBytesPtr, <float*> this.outBytesPtr, this.conf.conf.num)
         elif this.dataType == SZ_DOUBLE:
             verify[double](<double*> this.inBytesPtr, <double*> this.outBytesPtr, this.conf.conf.num)
+        elif this.dataType == SZ_INT32:
+            verify[int32_t](<int32_t*> this.inBytesPtr, <int32_t*> this.outBytesPtr, this.conf.conf.num)
         else:
             raise TypeError("Data type not supported")
         print("Verification completed.")
@@ -235,6 +237,9 @@ cdef class sz:
             elif this.dataType == SZ_DOUBLE:
                 this.inBytesPtr = malloc(this.conf.conf.num * sizeof(double))
                 readfile[double](inPathBytes, this.conf.conf.num, <double*> this.inBytesPtr)
+            elif this.dataType == SZ_INT32:
+                this.inBytesPtr = malloc(this.conf.conf.num * sizeof(int32_t))
+                readfile[int32_t](inPathBytes, this.conf.conf.num, <int32_t*> this.inBytesPtr)
             else:
                 print("Error: data type not supported")
 
@@ -263,6 +268,8 @@ cdef class sz:
             this.inBytesPtr = malloc(this.conf.conf.num * sizeof(float))
         elif this.dataType == SZ_DOUBLE:
             this.inBytesPtr = malloc(this.conf.conf.num * sizeof(double))
+        elif this.dataType == SZ_INT32:
+            this.inBytesPtr = malloc(this.conf.conf.num * sizeof(int32_t))
         else:
             print("Error: data type not supported")        
 
@@ -280,6 +287,10 @@ cdef class sz:
             this.inBytesPtr = malloc(n * sizeof(double))
             for i in range(n):
                 (<double*> this.inBytesPtr)[i] = <double> flattened_array[i]
+        elif this.dataType == SZ_INT32:
+            this.inBytesPtr = malloc(n * sizeof(int32_t))
+            for i in range(n):
+                (<int32_t*> this.inBytesPtr)[i] = <int32_t> flattened_array[i]
         else:
             print("Error: data type not supported") 
 
@@ -299,6 +310,10 @@ cdef class sz:
             array = array.astype(np.float64)
             for i in range(array.size):
                 array[i] = (<double*> this.outBytesPtr)[i]
+        elif this.dataType == SZ_INT32:
+            array = array.astype(np.int32)
+            for i in range(array.size):
+                array[i] = (<int32_t*> this.outBytesPtr)[i]
         else:
             print("Error: data type not supported") 
         return array
@@ -306,12 +321,12 @@ cdef class sz:
 
     # compress func
     def __compress(this):
-        
-
         if this.dataType == SZ_FLOAT:
             this.outBytesPtr = <void*> SZ_compress[float](this.conf.conf, <float*> this.inBytesPtr, this.cmpSize)
         elif this.dataType == SZ_DOUBLE:
             this.outBytesPtr = <void*> SZ_compress[double](this.conf.conf, <double*> this.inBytesPtr, this.cmpSize)
+        elif this.dataType == SZ_INT32:
+            this.outBytesPtr = <void*> SZ_compress[int32_t](this.conf.conf, <int32_t*> this.inBytesPtr, this.cmpSize)
         else:
             raise TypeError("data type not supported")
 
@@ -322,6 +337,8 @@ cdef class sz:
             this.outBytesPtr = <void*> SZ_decompress[float](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
         elif this.dataType == SZ_DOUBLE:
             this.outBytesPtr = <void*> SZ_decompress[double](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
+        elif this.dataType == SZ_INT32:
+            this.outBytesPtr = <void*> SZ_decompress[int32_t](this.conf.conf, <char*> this.inBytesPtr, this.cmpSize)
         else:
             raise TypeError("data type not supported")
     
