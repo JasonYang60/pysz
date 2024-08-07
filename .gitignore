@@ -1,0 +1,5 @@
+build
+pysz.egg-info
+SZ3-bio
+pysz/pyConfig.cpp
+pysz/sz.cpp

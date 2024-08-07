@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 name = "pysz"
 version = "0.0.6"
 authors = [
-    { name = "Jason Yang", email = "jason.neptune.yang@gmail.com"},
+    { name = "Zhuoxun Yang", email = "jason.neptune.yang@gmail.com"},
 ]
 description = "A python wrapper for the SZ3 compression library"
 readme = "README.md"
