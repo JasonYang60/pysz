@@ -256,7 +256,7 @@ cdef class sz:
         if len(args) == 1 and args[0] == '-d':
             this.inBytesPtr = malloc(array.size)
             for i in range(array.size):
-                (<char*>this.inBytesPtr)[i] = array[i]
+                (<uint8_t*>this.inBytesPtr)[i] = array[i]
             this.cmpSize = array.size
             return
         elif len(args) > 0:

@@ -35,3 +35,5 @@ cdef extern from "SZ3/api/sz.hpp":
 cdef extern from "SZ3/utils/Statistic.hpp" namespace "SZ3":
     void verify[Type](Type *ori_data, Type *data, size_t num_elements)
 
+cdef extern from "stdint.h":
+    ctypedef unsigned char uint8_t
