@@ -12,7 +12,20 @@ filename = 'traj_xyz.dat'
 datatype = 'float'
 # --------------------------------------------------
 #
-# Usage 1: Numpy array I/O
+# Usage 1: File I/O
+# --------------------------------------------------
+
+
+# compression
+cmpData3, cmp_ratio_2 = compressor.compress(datatype, 'sz3.config', filename)
+
+# decompression
+decmpData2 = compressor.decompress(datatype, 'sz3.config', filename + '.sz')
+
+
+# --------------------------------------------------
+#
+# Usage 2: Numpy array I/O
 # --------------------------------------------------
 
 # prepare your data in numpy array format
@@ -30,23 +43,12 @@ decmpData = compressor.decompress(datatype, 'sz3.config', cmpData2)
 
 # --------------------------------------------------
 #
-# Usage 2: File I/O
-# --------------------------------------------------
-
-# compression
-cmpData3, cmp_ratio_2 = compressor.compress(datatype, 'sz3.config', filename)
-
-# decompression
-decmpData2 = compressor.decompress(datatype, 'sz3.config', filename + '.sz')
-
-# --------------------------------------------------
-#
 # Verification
 # --------------------------------------------------
 
-compressor.verify(datatype, 'sz3.config', filename, filename + '.sz')
+compressor.verify(datatype, 'sz3.config', filename, filename + '.sz.out')
 # or using numpy array:
-# compressor.verify(datatype, 'sz3.config', rawData, cmpData)
+# compressor.verify(datatype, 'sz3.config', rawData, decmpData2)
 
 
 print(np.array_equal(cmpData1, cmpData2))

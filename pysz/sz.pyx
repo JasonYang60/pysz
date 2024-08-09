@@ -111,7 +111,7 @@ cdef class sz:
         this.clear()
         return array
 
-    def verify(this, dataType, cfgPath, rawData, cmpData):
+    def verify(this, dataType, cfgPath, rawData, decData):
         """
         Verifies the integrity of compressed data by comparing it to the original data.
 
@@ -141,17 +141,17 @@ cdef class sz:
         this.__setDataType(dataType)
         this.__loadcfg(cfgPath)
         rawSZ = 0
-        cmpSZ = 0
-        if isinstance(cmpData, np.ndarray):
-            if cmpData.dtype is not 'uint8':
-                raise TypeError("The type of array must be uint8")
+        decSZ = 0
+
+        if isinstance(decData, np.ndarray):
             print("Loading data from numpy array...")
-            this.__load_from_numpyArray(cmpData, '-d')
-            cmpSZ = cmpData.nbytes
+            this.__load_from_numpyArray(decData)
+            decSZ = decData.nbytes
         else:
-            print("Reading data from file: ", rawData)
-            this.__readfile(cmpData, '-d')
-            cmpSZ = this.__getFileSize(cmpData)
+            print("Reading data from file: ", decData)
+            this.__readfile(decData)
+            decSZ = this.__getFileSize(decData)
+
         this.outBytesPtr = this.inBytesPtr
         free(this.inBytesPtr)
         if isinstance(rawData, np.ndarray):
@@ -173,7 +173,7 @@ cdef class sz:
             raise TypeError("Data type not supported")
         print("Verification completed.")
         # log info
-        cmp_ratio = rawSZ * 1.0 / cmpSZ
+        cmp_ratio = rawSZ * 1.0 / decSZ
         print(f"compression ratio = {cmp_ratio:.2f}")
 
     def clear(this):
