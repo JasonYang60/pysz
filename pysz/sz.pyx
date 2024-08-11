@@ -261,6 +261,15 @@ cdef class sz:
         if not isinstance(array, np.ndarray):
             raise TypeError("Wrong params type")
 
+        if len(args) == 1 and args[0] == '-d':
+            this.inBytesPtr = malloc(array.size)
+            for i in range(array.size):
+                (<int8_t*>this.inBytesPtr)[i] = array[i]
+            this.cmpSize = array.size
+            return
+        elif len(args) > 0:
+            raise SyntaxError("Wrong input")
+
         if this.dataType == SZ_TYPE_EMPTY:
             raise TypeError("Can not read file. Data type not set")
         elif this.dataType == SZ_FLOAT:
@@ -296,7 +305,7 @@ cdef class sz:
     def __save_compressed_data_into_numpyArray(this):
         array = np.empty(this.cmpSize, dtype=np.int8)
         for i in range(array.size):
-            array[i] = (<char*>this.outBytesPtr)[i]
+            array[i] = (<int8_t*>this.outBytesPtr)[i]
         return array
 
     def __save_decompressed_data_into_numpyArray(this):
