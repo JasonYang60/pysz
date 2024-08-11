@@ -42,7 +42,7 @@ cdef class sz:
         Returns:
         --------
         compressed_data : numpy.ndarray
-            The compressed data as a numpy array of dtype 'uint8'. This represents the binary data after compression.
+            The compressed data as a numpy array of dtype 'int8'. This represents the binary data after compression.
         
         compression_ratio : float
             The compression ratio, which is the ratio of the original data size to the compressed data size.
@@ -86,7 +86,7 @@ cdef class sz:
             The file path to the configuration file used for decompression. This file contains the necessary parameters and settings for the decompression algorithm.
         
         data : numpy.ndarray
-            The compressed data to be decompressed. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
+            The compressed data to be decompressed. This can either be a file path (str) to the data file or a numpy array of dtype 'int8' representing the binary data after compression.
         
         Returns:
         --------
@@ -138,10 +138,10 @@ cdef class sz:
             The file path to the configuration file used for compression and decompression. This file contains the necessary parameters and settings for the algorithms.
         
         rawData : numpy.ndarray
-            The original data to before compression. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
+            The original data to before compression. This can either be a file path (str) to the data file or a numpy array of dtype 'int8' representing the binary data after compression.
 
         cmpData : numpy.ndarray
-            The decompressed data to be verified, as a numpy array with the same shape and data type as `rawData`. This can either be a file path (str) to the data file or a numpy array of dtype 'uint8' representing the binary data after compression.
+            The decompressed data to be verified, as a numpy array with the same shape and data type as `rawData`. This can either be a file path (str) to the data file or a numpy array of dtype 'int8' representing the binary data after compression.
 
         Returns:
         --------
@@ -261,6 +261,15 @@ cdef class sz:
         if not isinstance(array, np.ndarray):
             raise TypeError("Wrong params type")
 
+        if len(args) == 1 and args[0] == '-d':
+            this.inBytesPtr = malloc(array.size)
+            for i in range(array.size):
+                (<int8_t*>this.inBytesPtr)[i] = array[i]
+            this.cmpSize = array.size
+            return
+        elif len(args) > 0:
+            raise SyntaxError("Wrong input")
+
         if this.dataType == SZ_TYPE_EMPTY:
             raise TypeError("Can not read file. Data type not set")
         elif this.dataType == SZ_FLOAT:
@@ -294,9 +303,9 @@ cdef class sz:
             print("Error: data type not supported") 
 
     def __save_compressed_data_into_numpyArray(this):
-        array = np.empty(this.cmpSize, dtype=np.uint8)
+        array = np.empty(this.cmpSize, dtype=np.int8)
         for i in range(array.size):
-            array[i] = (<char*>this.outBytesPtr)[i]
+            array[i] = (<int8_t*>this.outBytesPtr)[i]
         return array
 
     def __save_decompressed_data_into_numpyArray(this):
