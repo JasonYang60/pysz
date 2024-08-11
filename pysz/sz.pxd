@@ -2,7 +2,7 @@ from libcpp.string cimport string
 from libc.stdlib cimport malloc, free
 from libcpp.vector cimport vector
 from pysz cimport pyConfig
-from libc.stdint cimport int32_t, uint8_t
+from libc.stdint cimport int32_t, int8_t
 
 cdef enum SZ_TYPE:
     SZ_TYPE_EMPTY
