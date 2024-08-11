@@ -97,6 +97,7 @@ cdef class sz:
         this.__setDataType(dataType)
         this.__loadcfg(cfgPath)
         array = np.zeros(1)
+        cdef size_t cmpSize = 0
         if isinstance(data, np.ndarray):
             print("Loading data from numpy array...")
             this.__load_from_numpyArray(data, '-d')
@@ -104,7 +105,17 @@ cdef class sz:
         else:
             this.__readfile(data, '-d')
             this.__decompress_timing()
+            cmpSize = this.cmpSize
+            if this.dataType == SZ_FLOAT:
+                this.cmpSize = this.conf.conf.num * sizeof(float)
+            elif this.dataType == SZ_DOUBLE:
+                this.cmpSize = this.conf.conf.num * sizeof(double)
+            elif this.dataType == SZ_INT32:
+                this.cmpSize = this.conf.conf.num * sizeof(int32_t)
+            else:
+                raise TypeError("Data type not supported")
             this.__writefile(data + '.out')
+            this.cmpSize = cmpSize
         
         array = this.__save_decompressed_data_into_numpyArray()
         array = array.reshape(this.getDims())
@@ -142,7 +153,6 @@ cdef class sz:
         this.__loadcfg(cfgPath)
         rawSZ = 0
         decSZ = 0
-
         if isinstance(decData, np.ndarray):
             print("Loading data from numpy array...")
             this.__load_from_numpyArray(decData)
@@ -153,7 +163,7 @@ cdef class sz:
             decSZ = this.__getFileSize(decData)
 
         this.outBytesPtr = this.inBytesPtr
-        free(this.inBytesPtr)
+        this.inBytesPtr = NULL
         if isinstance(rawData, np.ndarray):
             print("Loading data from numpy array...")
             this.__load_from_numpyArray(rawData)
@@ -162,7 +172,7 @@ cdef class sz:
             print("Reading data from file: ", rawData)
             this.__readfile(rawData)
             rawSZ = this.__getFileSize(rawData)
-        
+
         if this.dataType == SZ_FLOAT:
             verify[float](<float*> this.inBytesPtr, <float*> this.outBytesPtr, this.conf.conf.num)
         elif this.dataType == SZ_DOUBLE:
@@ -172,9 +182,7 @@ cdef class sz:
         else:
             raise TypeError("Data type not supported")
         print("Verification completed.")
-        # log info
-        cmp_ratio = rawSZ * 1.0 / decSZ
-        print(f"compression ratio = {cmp_ratio:.2f}")
+        
 
     def clear(this):
         this.conf = pyConfig.pyConfig(*this.getDims())
@@ -252,15 +260,6 @@ cdef class sz:
     def __load_from_numpyArray(this, array, *args):
         if not isinstance(array, np.ndarray):
             raise TypeError("Wrong params type")
-
-        if len(args) == 1 and args[0] == '-d':
-            this.inBytesPtr = malloc(array.size)
-            for i in range(array.size):
-                (<uint8_t*>this.inBytesPtr)[i] = array[i]
-            this.cmpSize = array.size
-            return
-        elif len(args) > 0:
-            raise SyntaxError("Wrong input")
 
         if this.dataType == SZ_TYPE_EMPTY:
             raise TypeError("Can not read file. Data type not set")
