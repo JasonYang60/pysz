@@ -1,0 +1,9 @@
+# Include all .pyx files
+include pysz/*.pyx
+
+# Include README and LICENSE files
+include README.md
+include copyright-and-BSD-license.txt
+
+# Include other necessary files or directories
+recursive-include pysz *.pxd

@@ -94,6 +94,7 @@ from Cython.Build import cythonize
 configuration = {
     'packages': find_packages(),
     'ext_modules': extensions(),
+    'include_package_data': True,
 }
 
 setup(**configuration)
