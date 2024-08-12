@@ -18,7 +18,8 @@ jobs:
       with:
         python-version: 3.x
 
-    - name: Install dependencies
+    - name: Build the package with manylinux
+      uses: docker://quay.io/pypa/manylinux2014_x86_64
       run: |
         python -m pip install --upgrade pip
         pip install setuptools cython wheel twine auditwheel
