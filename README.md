@@ -29,17 +29,18 @@ Python>=3.10
 
 ## Installation
 
-### Method 1. install from .whl
-If you are running a linux system and using x86 or x64 CPU platform, pysz can be installed directly from a pre-compiled `.whl` file(eg. `pysz-0.0.2-cp312-cp312-linux_x86_64.whl`) located in `./dist/`. 
+### Method 1. install from pypi
+```bash
+pip install pysz
+```
+Without the support of your current environment, it could take a few more time at the step of "Building wheels for collected packages...". \
+If you are running a linux system and using x86 or x64 CPU platform, pysz can be installed directly from a pre-compiled `.whl` file
+### Method 2. download source code and compile locally
+First, download the source code from github rep.
 ```bash
 git clone https://github.com/JasonYang60/pysz.git
-cd pysz
-mv ./dist/pysz-0.0.2-cp312-cp312-linux_x86_64.whl ./
-pip install pysz-0.0.2-cp312-cp312-linux_x86_64.whl
 ```
-### Method 2. local compilation
-According to your system && CPU platform, if a coresponding `.whl` is absent, you should compile pysz locally.\
-First, Make sure cmake && gcc installed.\
+Second, make sure cmake && gcc is installed.\
 Pysz uses python-to-c package Cython>=3.0.10, so what `setup.py` does includes downloading c++ source code from github and automatically applying cmake && make command to finish c++ code compilation.\
 Then
 ```bash
@@ -59,10 +60,6 @@ python -m build
 tip: there is still some issues remaining to be fixed. This command will also work:
 ```bash
 python setup.py sdist bdist_wheel
-```
-### Method 3. install from Pypi
-```bash
-pip install pysz
 ```
 
 ## Launch in docker
