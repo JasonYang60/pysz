@@ -9,7 +9,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     container:
-      image: quay.io/pypa/manylinux2014_x86_64
+      image: quay.io/pypa/manylinux_2_17_x86_64
     
     steps:
     - name: Checkout code
