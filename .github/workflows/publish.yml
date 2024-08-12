@@ -32,7 +32,7 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYSZ_PYPI_API_TOKEN }}
       run: |
-        auditwheel repair dist/*.whl -w dist/ --plat --plat manylinux_2_28_x86_64
+        auditwheel repair dist/*.whl -w dist/ --plat manylinux_2_28_x86_64
         twine upload dist/*
 
     - name: Cleanup build artifacts
