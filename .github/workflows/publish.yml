@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools cython wheel twine
+        pip install setuptools cython wheel twine auditwheel
 
     - name: Build the package
       run: |
@@ -32,7 +32,7 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYSZ_PYPI_API_TOKEN }}
       run: |
-        python -m pip install --upgrade twine
+        auditwheel repair dist/*.whl -w dist/
         twine upload dist/*
 
     - name: Cleanup build artifacts
